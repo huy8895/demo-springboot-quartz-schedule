@@ -2,7 +2,9 @@ package com.example.demospringbootquartzschedule;
 
 import com.example.demospringbootquartzschedule.JobInfo.TriggerInfo;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.quartz.*;
 import org.quartz.Trigger.TriggerState;
@@ -23,8 +25,18 @@ public class JobService {
     // Thêm một job mới
     public void addNewJob(Class<? extends Job> jobClass, String jobName, String groupName, String triggerName, int intervalInSeconds) throws SchedulerException {
         logger.info("Adding new job: jobClass={}, jobName={}, groupName={}, triggerName={}, intervalInSeconds={}", jobClass, jobName, groupName, triggerName, intervalInSeconds);
+        final HashMap<String, String> map = new HashMap<>();
+
+        map.put("jobClass", jobClass.getName());
+        map.put("jobName", jobName);
+        map.put("groupName", groupName);
+        map.put("triggerName", triggerName);
+        map.put("intervalInSeconds", String.valueOf(intervalInSeconds));
+
         JobDetail jobDetail = JobBuilder.newJob(jobClass)
                 .withIdentity(jobName, groupName)
+            .withDescription("description")
+            .setJobData(new JobDataMap(map))
                 .build();
 
         Trigger trigger = TriggerBuilder.newTrigger()
@@ -107,6 +119,8 @@ public class JobService {
         // Lấy thông tin JobDetail từ scheduler
         JobDetail jobDetail = scheduler.getJobDetail(jobKey);
 
+//        Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals("emailGroup"));
+
         if (jobDetail == null) {
             logger.info("Job doesn't exist");
             throw new SchedulerException("Job not found");
@@ -135,6 +149,6 @@ public class JobService {
 
         logger.info("Found {} triggers", triggerInfoList.size());
         // Trả về thông tin job và các trigger liên quan
-        return new JobInfo(jobDetail.getKey().getName(), jobDetail.getKey().getGroup(), triggerInfoList);
+        return new JobInfo(jobDetail.getKey().getName(), jobDetail.getKey().getGroup(), triggerInfoList, jobDetail.getJobDataMap());
     }
 }
