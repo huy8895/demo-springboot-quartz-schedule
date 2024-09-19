@@ -47,11 +47,12 @@ public class JobController {
 
     // API để cập nhật một job (thay đổi trigger)
     @PostMapping("/update")
-    public String updateJob(@RequestParam String jobName,
+    public String updateJob(
         @RequestParam String groupName,
+        @RequestParam String oldTriggerName,
         @RequestParam String newTriggerName,
         @RequestParam int newIntervalInSeconds) throws SchedulerException {
-        jobService.updateJobTrigger(jobName, groupName, newTriggerName, newIntervalInSeconds);
+        jobService.updateJobTrigger(oldTriggerName, groupName, newTriggerName, newIntervalInSeconds);
         return "Job updated successfully!";
     }
 

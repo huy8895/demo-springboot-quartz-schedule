@@ -48,8 +48,8 @@ public class JobService {
     }
 
     // Cập nhật job trigger (thay đổi lịch trình)
-    public void updateJobTrigger(String jobName, String groupName, String newTriggerName, int newIntervalInSeconds) throws SchedulerException {
-        logger.info("Updating job trigger: jobName={}, groupName={}, newTriggerName={}, newIntervalInSeconds={}", jobName, groupName, newTriggerName, newIntervalInSeconds);
+    public void updateJobTrigger(String oldTriggerName, String groupName, String newTriggerName, int newIntervalInSeconds) throws SchedulerException {
+        logger.info("Updating job trigger: oldTriggerName={}, groupName={}, newTriggerName={}, newIntervalInSeconds={}", oldTriggerName, groupName, newTriggerName, newIntervalInSeconds);
         Trigger newTrigger = TriggerBuilder.newTrigger()
                 .withIdentity(newTriggerName, groupName)
                 .startNow()
@@ -58,7 +58,7 @@ public class JobService {
                         .repeatForever())
                 .build();
 
-        scheduler.rescheduleJob(new TriggerKey(newTriggerName, groupName), newTrigger);
+        scheduler.rescheduleJob(new TriggerKey(oldTriggerName, groupName), newTrigger);
     }
 
     // Xóa job
