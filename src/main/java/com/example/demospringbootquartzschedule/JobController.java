@@ -88,6 +88,7 @@ public class JobController {
     public JobInfo searchJob(@RequestParam String jobName,
         @RequestParam String groupName) throws SchedulerException {
         // Gọi service để xử lý logic tìm kiếm job và trigger
+        log.info("start searchJob with groupName {}", groupName);
         return jobService.searchJob(jobName, groupName);
     }
 }
