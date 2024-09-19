@@ -35,6 +35,23 @@ public class JobService {
         scheduler.scheduleJob(jobDetail, trigger);
     }
 
+    public void addOneTimeJob(Class<? extends Job> jobClass, String jobName, String groupName, String triggerName, int delayInSeconds) throws SchedulerException {
+        // Tạo JobDetail
+        JobDetail jobDetail = JobBuilder.newJob(jobClass)
+            .withIdentity(jobName, groupName)
+            .build();
+
+        // Tạo trigger sẽ chỉ chạy một lần sau delayInSeconds
+        Trigger trigger = TriggerBuilder.newTrigger()
+            .withIdentity(triggerName, groupName)
+            .startAt(DateBuilder.futureDate(delayInSeconds, DateBuilder.IntervalUnit.SECOND))  // Thời gian bắt đầu
+            .withSchedule(SimpleScheduleBuilder.simpleSchedule().withRepeatCount(0))  // Chỉ chạy 1 lần
+            .build();
+
+        // Thêm Job vào scheduler
+        scheduler.scheduleJob(jobDetail, trigger);
+    }
+
     // Tạm dừng một job
     public void pauseJob(String jobName, String groupName) throws SchedulerException {
         logger.info("Pausing job: jobName={}, groupName={}", jobName, groupName);

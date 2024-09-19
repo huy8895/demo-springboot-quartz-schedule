@@ -1,6 +1,7 @@
 package com.example.demospringbootquartzschedule;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.SchedulerException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/jobs")
 public class JobController {
@@ -27,6 +29,17 @@ public class JobController {
         @RequestParam int intervalInSeconds) throws SchedulerException {
         jobService.addNewJob(SampleJob.class, jobName, groupName, triggerName, intervalInSeconds);
         return "Job added successfully!";
+    }
+
+    @PostMapping("/addOneTimeJob")
+    public String addOneTimeJob(@RequestParam String jobName,
+        @RequestParam String groupName,
+        @RequestParam String triggerName,
+        @RequestParam int delayInSeconds) throws SchedulerException {
+        log.info("start addOneTimeJob");
+        jobService.addOneTimeJob(SampleJob.class, jobName, groupName, triggerName, delayInSeconds);
+        log.info("Job added successfully!");
+        return "One-time job added successfully!";
     }
 
     // API để tạm dừng một job
