@@ -82,4 +82,12 @@ public class JobController {
     public List<String> listAllJobs() throws SchedulerException {
         return jobService.getAllJobs();
     }
+
+    // API để tìm kiếm job và trigger
+    @GetMapping("/searchJob")
+    public JobInfo searchJob(@RequestParam String jobName,
+        @RequestParam String groupName) throws SchedulerException {
+        // Gọi service để xử lý logic tìm kiếm job và trigger
+        return jobService.searchJob(jobName, groupName);
+    }
 }

@@ -1,8 +1,11 @@
 package com.example.demospringbootquartzschedule;
 
+import com.example.demospringbootquartzschedule.JobInfo.TriggerInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.quartz.*;
+import org.quartz.Trigger.TriggerState;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -94,5 +97,44 @@ public class JobService {
             }
         }
         return jobList;
+    }
+
+    // Tìm kiếm job và các trigger liên quan
+    public JobInfo searchJob(String jobName, String groupName) throws SchedulerException {
+        logger.info("Searching job: jobName={}, groupName={}", jobName, groupName);
+        JobKey jobKey = new JobKey(jobName, groupName);
+
+        // Lấy thông tin JobDetail từ scheduler
+        JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+
+        if (jobDetail == null) {
+            logger.info("Job doesn't exist");
+            throw new SchedulerException("Job not found");
+        }
+        logger.info("Found job: jobKey={}, groupName={}", jobKey, groupName);
+
+        // Lấy danh sách các trigger liên quan đến job
+        List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
+
+        logger.info("Found triggers: jobKey={}, groupName={}", jobKey, groupName);
+        // Chuyển đổi thông tin trigger thành dạng cần trả về
+        List<TriggerInfo> triggerInfoList = triggers.stream().map(trigger -> {
+            TriggerState triggerState;
+            try {
+                triggerState = scheduler.getTriggerState(trigger.getKey());
+            } catch (SchedulerException e) {
+                logger.info("Trigger doesn't exist, triggerKey={}, groupName={}", trigger.getKey(), groupName);
+                triggerState = TriggerState.NONE;
+            }
+            return new TriggerInfo(trigger.getKey().getName(),
+                trigger.getKey().getGroup(),
+                trigger.getStartTime(),
+                trigger.getNextFireTime(),
+                triggerState);
+        }).collect(Collectors.toList());
+
+        logger.info("Found {} triggers", triggerInfoList.size());
+        // Trả về thông tin job và các trigger liên quan
+        return new JobInfo(jobDetail.getKey().getName(), jobDetail.getKey().getGroup(), triggerInfoList);
     }
 }
