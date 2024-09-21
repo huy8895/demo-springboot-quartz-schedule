@@ -6,9 +6,11 @@ import org.quartz.SchedulerException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @Slf4j
 @RestController
@@ -60,12 +62,9 @@ public class JobController {
 
     // API để cập nhật một job (thay đổi trigger)
     @PostMapping("/update")
-    public String updateJob(
-        @RequestParam String groupName,
-        @RequestParam String oldTriggerName,
-        @RequestParam String newTriggerName,
-        @RequestParam int newIntervalInSeconds) throws SchedulerException {
-        jobService.updateJobTrigger(oldTriggerName, groupName, newTriggerName, newIntervalInSeconds);
+    public String updateJob(@RequestBody JobUpdateDTO updateDTO) throws SchedulerException {
+        jobService.updateJob(updateDTO);
+        log.info("Job updated successfully!");
         return "Job updated successfully!";
     }
 

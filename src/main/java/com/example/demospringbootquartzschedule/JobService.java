@@ -4,6 +4,7 @@ import com.example.demospringbootquartzschedule.JobInfo.TriggerInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.quartz.*;
@@ -80,17 +81,59 @@ public class JobService {
     }
 
     // Cập nhật job trigger (thay đổi lịch trình)
-    public void updateJobTrigger(String oldTriggerName, String groupName, String newTriggerName, int newIntervalInSeconds) throws SchedulerException {
-        logger.info("Updating job trigger: oldTriggerName={}, groupName={}, newTriggerName={}, newIntervalInSeconds={}", oldTriggerName, groupName, newTriggerName, newIntervalInSeconds);
-        Trigger newTrigger = TriggerBuilder.newTrigger()
-                .withIdentity(newTriggerName, groupName)
-                .startNow()
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        .withIntervalInSeconds(newIntervalInSeconds)
-                        .repeatForever())
-                .build();
+    public void     updateJob(JobUpdateDTO updateDTO) throws SchedulerException {
+        JobKey jobKey = new JobKey(updateDTO.getJobName(), updateDTO.getGroupName());
+        JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+        
+        if (jobDetail == null) {
+            throw new IllegalArgumentException("Job not found");
+        }
 
-        scheduler.rescheduleJob(new TriggerKey(oldTriggerName, groupName), newTrigger);
+        // Cập nhật JobDataMap
+        if (updateDTO.getNewJobData() != null && !updateDTO.getNewJobData().isEmpty()) {
+            JobBuilder jobBuilder = jobDetail.getJobBuilder();
+            
+            // Đảm bảo job là durable
+            jobBuilder = jobBuilder.storeDurably();
+            
+            // Cập nhật JobDataMap
+            JobDataMap jobDataMap = new JobDataMap(jobDetail.getJobDataMap());
+            jobDataMap.putAll(updateDTO.getNewJobData());
+            jobBuilder = jobBuilder.usingJobData(jobDataMap);
+            
+            // Tạo JobDetail mới và cập nhật nó
+            JobDetail updatedJobDetail = jobBuilder.build();
+            scheduler.addJob(updatedJobDetail, true);
+        }
+
+        // Cập nhật Trigger nếu cần
+        if (updateDTO.getNewTriggerName() != null || updateDTO.getNewIntervalInSeconds() != null) {
+            List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
+            if (!triggers.isEmpty()) {
+                Trigger oldTrigger = triggers.get(0);
+                TriggerBuilder<Trigger> tb = TriggerBuilder.newTrigger();
+                
+                if (updateDTO.getNewTriggerName() != null) {
+                    tb.withIdentity(updateDTO.getNewTriggerName(), updateDTO.getGroupName());
+                } else {
+                    tb.withIdentity(oldTrigger.getKey());
+                }
+                
+                if (updateDTO.getNewIntervalInSeconds() != null) {
+                    if (oldTrigger instanceof SimpleTrigger) {
+                        tb.withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                            .withIntervalInSeconds(updateDTO.getNewIntervalInSeconds())
+                            .repeatForever());
+                    } else {
+                        // Xử lý các loại trigger khác nếu cần
+                    }
+                } else {
+                    tb.withSchedule(oldTrigger.getScheduleBuilder());
+                }
+                
+                scheduler.rescheduleJob(oldTrigger.getKey(), tb.build());
+            }
+        }
     }
 
     // Xóa job
