@@ -5,25 +5,32 @@ import java.util.List;
 import lombok.Data;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
+import org.quartz.JobKey;
 import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
 import org.quartz.Trigger.TriggerState;
 
 @Data
 public class JobInfo {
-    private String jobName;
-    private String groupName;
+    private JobKey jobKey;
+    private String description;
+    private Class<?> jobClass;
+    private boolean durability;
+    private boolean requestsRecovery;
     private List<TriggerInfo> triggerInfoList;
     private JobDataMap jobDataMap;
 
     public JobInfo(JobDetail jobDetail, List<TriggerInfo> triggerInfoList) {
-        this.jobName = jobDetail.getKey().getName();
-        this.groupName = jobDetail.getKey().getGroup();
+        this.jobKey = jobDetail.getKey();
+        this.description = jobDetail.getDescription();
+        this.jobClass = jobDetail.getJobClass();
+        this.durability = jobDetail.isDurable();
+        this.requestsRecovery = jobDetail.requestsRecovery();
         this.triggerInfoList = triggerInfoList;
         this.jobDataMap = jobDetail.getJobDataMap();
     }
 
-    // Getters và Setters
+    // Getters và Setters được tạo tự động bởi @Data của Lombok
 
     @Data
     public static class TriggerInfo {
