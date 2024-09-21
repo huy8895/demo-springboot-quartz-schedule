@@ -164,13 +164,9 @@ public class JobService {
                 logger.info("Trigger không tồn tại, triggerKey={}, groupName={}", trigger.getKey(), trigger.getKey().getGroup());
                 triggerState = TriggerState.NONE;
             }
-            return new TriggerInfo(trigger.getKey().getName(),
-                trigger.getKey().getGroup(),
-                trigger.getStartTime(),
-                trigger.getNextFireTime(),
-                triggerState);
+            return new TriggerInfo(trigger, triggerState);
         }).collect(Collectors.toList());
 
-        return new JobInfo(jobDetail.getKey().getName(), jobDetail.getKey().getGroup(), triggerInfoList, jobDetail.getJobDataMap());
+        return new JobInfo(jobDetail, triggerInfoList);
     }
 }
