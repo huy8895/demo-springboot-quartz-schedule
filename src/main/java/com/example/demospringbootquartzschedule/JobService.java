@@ -112,32 +112,56 @@ public class JobService {
     }
 
     // Tìm kiếm job và các trigger liên quan
-    public JobInfo searchJob(String jobName, String groupName) throws SchedulerException {
-        logger.info("Searching job: jobName={}, groupName={}", jobName, groupName);
-        JobKey jobKey = new JobKey(jobName, groupName);
+    public List<JobInfo> searchJob(String jobName, String groupName) throws SchedulerException {
+        logger.info("Tìm kiếm công việc: jobName={}, groupName={}", jobName, groupName);
+        List<JobInfo> jobInfoList = new ArrayList<>();
 
-        // Lấy thông tin JobDetail từ scheduler
-        JobDetail jobDetail = scheduler.getJobDetail(jobKey);
-
-//        Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals("emailGroup"));
-
-        if (jobDetail == null) {
-            logger.info("Job doesn't exist");
-            throw new SchedulerException("Job not found");
+        if (jobName != null && groupName != null) {
+            // Tìm kiếm công việc cụ thể
+            JobKey jobKey = new JobKey(jobName, groupName);
+            JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+            if (jobDetail != null) {
+                jobInfoList.add(getJobInfo(jobDetail));
+            }
+        } else if (jobName != null) {
+            // Tìm tất cả công việc có tên jobName trong tất cả các nhóm
+            for (String group : scheduler.getJobGroupNames()) {
+                JobKey jobKey = new JobKey(jobName, group);
+                JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+                if (jobDetail != null) {
+                    jobInfoList.add(getJobInfo(jobDetail));
+                }
+            }
+        } else if (groupName != null) {
+            // Tìm tất cả công việc trong nhóm
+            Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName));
+            for (JobKey jobKey : jobKeys) {
+                JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+                jobInfoList.add(getJobInfo(jobDetail));
+            }
+        } else {
+            // Tìm tất cả công việc
+            for (String group : scheduler.getJobGroupNames()) {
+                Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(group));
+                for (JobKey jobKey : jobKeys) {
+                    JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+                    jobInfoList.add(getJobInfo(jobDetail));
+                }
+            }
         }
-        logger.info("Found job: jobKey={}, groupName={}", jobKey, groupName);
 
-        // Lấy danh sách các trigger liên quan đến job
-        List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
+        logger.info("Tìm thấy {} công việc", jobInfoList.size());
+        return jobInfoList;
+    }
 
-        logger.info("Found triggers: jobKey={}, groupName={}", jobKey, groupName);
-        // Chuyển đổi thông tin trigger thành dạng cần trả về
+    private JobInfo getJobInfo(JobDetail jobDetail) throws SchedulerException {
+        List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobDetail.getKey());
         List<TriggerInfo> triggerInfoList = triggers.stream().map(trigger -> {
             TriggerState triggerState;
             try {
                 triggerState = scheduler.getTriggerState(trigger.getKey());
             } catch (SchedulerException e) {
-                logger.info("Trigger doesn't exist, triggerKey={}, groupName={}", trigger.getKey(), groupName);
+                logger.info("Trigger không tồn tại, triggerKey={}, groupName={}", trigger.getKey(), trigger.getKey().getGroup());
                 triggerState = TriggerState.NONE;
             }
             return new TriggerInfo(trigger.getKey().getName(),
@@ -147,8 +171,6 @@ public class JobService {
                 triggerState);
         }).collect(Collectors.toList());
 
-        logger.info("Found {} triggers", triggerInfoList.size());
-        // Trả về thông tin job và các trigger liên quan
         return new JobInfo(jobDetail.getKey().getName(), jobDetail.getKey().getGroup(), triggerInfoList, jobDetail.getJobDataMap());
     }
 }
