@@ -19,7 +19,7 @@ public class SampleJob implements Job {
     @Override
     @SneakyThrows
     public void execute(JobExecutionContext context) {
-        log.info("execute() called with: [{}]", context.getJobDetail());
+        log.info("[START] =====> execute() called with: [{}]", context.getJobDetail());
         // Lấy thông tin jobDetail từ context
         JobDetail jobDetail = context.getJobDetail();
         // Ghi thông tin jobDetail vào log
@@ -27,6 +27,6 @@ public class SampleJob implements Job {
         // Lấy thông tin jobDataMap từ jobDetail
         JobDataMap jobDataMap = jobDetail.getJobDataMap();
         // Ghi thông tin jobDataMap vào log
-        log.info("Thông tin jobDataMap: {}", objectMapper.writeValueAsString(jobDataMap));
+        log.info("[END] Thông tin jobDataMap: {}", objectMapper.writeValueAsString(jobDataMap));
     }
 }

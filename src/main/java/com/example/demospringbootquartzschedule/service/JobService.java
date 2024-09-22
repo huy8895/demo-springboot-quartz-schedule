@@ -5,6 +5,8 @@ import com.example.demospringbootquartzschedule.dto.JobInfoDTO.TriggerInfo;
 import com.example.demospringbootquartzschedule.dto.AddJobDTO;
 import com.example.demospringbootquartzschedule.dto.AddOneTimeJobDTO;
 import com.example.demospringbootquartzschedule.dto.JobUpdateDTO;
+import com.example.demospringbootquartzschedule.dto.AddCronJobDTO; // Added DTO for cron job
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +26,7 @@ import org.quartz.Trigger;
 import org.quartz.Trigger.TriggerState;
 import org.quartz.TriggerBuilder;
 import org.quartz.impl.matchers.GroupMatcher;
+import org.quartz.CronScheduleBuilder; // Added for cron schedule
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +72,11 @@ public class JobService {
   @Transactional(rollbackFor = ObjectAlreadyExistsException.class)
   public void addOneTimeJob(AddOneTimeJobDTO addOneTimeJobDTO) throws SchedulerException {
     logger.info("Đang thêm job một lần: {}", addOneTimeJobDTO);
+    // Kiểm tra thời gian bắt đầu phải sau thời điểm hiện tại
+    if (addOneTimeJobDTO.getStartTime() == null || addOneTimeJobDTO.getStartTime().isBefore(
+        LocalDateTime.now())) {
+      throw new IllegalArgumentException("Thời gian bắt đầu phải sau thời điểm hiện tại");
+    }
 
     Class<? extends Job> jobClass;
     try {
@@ -85,7 +93,7 @@ public class JobService {
     // Tạo trigger sẽ chỉ chạy một lần sau delayInSeconds
     Trigger trigger = TriggerBuilder.newTrigger()
         .withIdentity(addOneTimeJobDTO.getTriggerName(), addOneTimeJobDTO.getGroupName())
-        .startAt(addOneTimeJobDTO.getStartTime()) // Sử dụng startTime từ DTO
+        .startAt(addOneTimeJobDTO.getStartTimeAsDate()) // Sử dụng startTime từ DTO
         .withSchedule(SimpleScheduleBuilder.simpleSchedule()
             .withRepeatCount(0))
         .build();
@@ -244,5 +252,30 @@ public class JobService {
         .collect(Collectors.toList());
 
     return new JobInfoDTO(jobDetail, triggerInfoList);
+  }
+
+  // Added method for cron job
+  @Transactional(rollbackFor = ObjectAlreadyExistsException.class)
+  public void addCronJob(AddCronJobDTO addCronJobDTO) throws SchedulerException {
+    logger.info("Đang thêm job cron: {}", addCronJobDTO);
+
+    Class<? extends Job> jobClass;
+    try {
+      jobClass = (Class<? extends Job>) Class.forName(addCronJobDTO.getJobClassName());
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException("Không tìm thấy lớp job", e);
+    }
+
+    JobDetail jobDetail = JobBuilder.newJob(jobClass)
+        .withIdentity(addCronJobDTO.getJobName(), addCronJobDTO.getGroupName())
+        .withDescription("Mô tả")
+        .build();
+
+    Trigger trigger = TriggerBuilder.newTrigger()
+        .withIdentity(addCronJobDTO.getTriggerName(), addCronJobDTO.getGroupName())
+        .withSchedule(CronScheduleBuilder.cronSchedule(addCronJobDTO.getCronExpression())) // Sử dụng biểu thức cron
+        .build();
+
+    scheduler.scheduleJob(jobDetail, trigger);
   }
 }

@@ -5,6 +5,7 @@ import com.example.demospringbootquartzschedule.service.JobService;
 import com.example.demospringbootquartzschedule.dto.AddJobDTO;
 import com.example.demospringbootquartzschedule.dto.AddOneTimeJobDTO;
 import com.example.demospringbootquartzschedule.dto.JobUpdateDTO;
+import com.example.demospringbootquartzschedule.dto.AddCronJobDTO;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.SchedulerException;
@@ -89,5 +90,13 @@ public class JobController {
         // Gọi service để xử lý logic tìm kiếm job và trigger
         log.info("start searchJob with groupName {}", groupName);
         return jobService.searchJob(jobName, groupName);
+    }
+
+    @PostMapping("/addCronJob")
+    public String addCronJob(@RequestBody AddCronJobDTO addCronJobDTO) throws SchedulerException {
+        log.info("start addCronJob with groupName {}", addCronJobDTO.getGroupName());
+        jobService.addCronJob(addCronJobDTO);
+        log.info("end addCronJob with groupName {}", addCronJobDTO.getGroupName());
+        return "Cron job đã được thêm thành công!";
     }
 }
