@@ -32,7 +32,7 @@ public class JobController {
     public String addJob(@RequestBody AddJobDTO addJobDTO) throws SchedulerException {
         jobService.addNewJob(addJobDTO);
         log.info("Job added successfully");
-        return "Job đã được thêm thành công!";
+        return "Job added successfully";
     }
 
     @PostMapping("/addOneTimeJob")

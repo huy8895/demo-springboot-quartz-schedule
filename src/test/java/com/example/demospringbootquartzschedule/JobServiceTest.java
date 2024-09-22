@@ -1,12 +1,15 @@
 package com.example.demospringbootquartzschedule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.demospringbootquartzschedule.config.SampleJob;
+import com.example.demospringbootquartzschedule.dto.AddJobDTO;
+import com.example.demospringbootquartzschedule.dto.AddOneTimeJobDTO;
 import com.example.demospringbootquartzschedule.service.JobService;
 import java.util.Collections;
 import java.util.HashSet;
@@ -19,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
+import org.quartz.ObjectAlreadyExistsException;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
@@ -39,16 +43,44 @@ class JobServiceTest {
 
     @Test
     void testAddNewJob() throws SchedulerException {
-        // Setup
-        String jobName = "testJob";
-        String groupName = "testGroup";
-        String triggerName = "testTrigger";
-        int intervalInSeconds = 10;
+        AddJobDTO addJobDTO = new AddJobDTO();
+        addJobDTO.setJobName("testJob");
+        addJobDTO.setGroupName("testGroup");
+        addJobDTO.setTriggerName("testTrigger");
+        addJobDTO.setIntervalInSeconds(10);
+        addJobDTO.setJobClassName("com.example.demospringbootquartzschedule.config.SampleJob");
 
-        // Act
-        jobService.addNewJob(SampleJob.class, jobName, groupName, triggerName, intervalInSeconds);
+        jobService.addNewJob(addJobDTO);
 
-        // Assert
+        verify(scheduler, times(1)).scheduleJob(any(JobDetail.class), any(Trigger.class));
+    }
+
+    @Test
+    void testAddNewJobAlreadyExists() throws SchedulerException {
+        AddJobDTO addJobDTO = new AddJobDTO();
+        addJobDTO.setJobName("testJob");
+        addJobDTO.setGroupName("testGroup");
+        addJobDTO.setTriggerName("testTrigger");
+        addJobDTO.setIntervalInSeconds(10);
+        addJobDTO.setJobClassName("com.example.demospringbootquartzschedule.config.SampleJob");
+
+        doThrow(new ObjectAlreadyExistsException("Job already exists"))
+            .when(scheduler).scheduleJob(any(JobDetail.class), any(Trigger.class));
+
+        assertThrows(ObjectAlreadyExistsException.class, () -> jobService.addNewJob(addJobDTO));
+    }
+
+    @Test
+    void testAddOneTimeJob() throws SchedulerException {
+        AddOneTimeJobDTO addOneTimeJobDTO = new AddOneTimeJobDTO();
+        addOneTimeJobDTO.setJobName("testOneTimeJob");
+        addOneTimeJobDTO.setGroupName("testGroup");
+        addOneTimeJobDTO.setTriggerName("testTrigger");
+        addOneTimeJobDTO.setDelayInSeconds(60);
+        addOneTimeJobDTO.setJobClassName("com.example.demospringbootquartzschedule.config.SampleJob");
+
+        jobService.addOneTimeJob(addOneTimeJobDTO);
+
         verify(scheduler, times(1)).scheduleJob(any(JobDetail.class), any(Trigger.class));
     }
 
@@ -57,10 +89,8 @@ class JobServiceTest {
         String jobName = "testJob";
         String groupName = "testGroup";
 
-        // Act
         jobService.pauseJob(jobName, groupName);
 
-        // Assert
         verify(scheduler, times(1)).pauseJob(JobKey.jobKey(jobName, groupName));
     }
 
@@ -69,10 +99,8 @@ class JobServiceTest {
         String jobName = "testJob";
         String groupName = "testGroup";
 
-        // Act
         jobService.resumeJob(jobName, groupName);
 
-        // Assert
         verify(scheduler, times(1)).resumeJob(JobKey.jobKey(jobName, groupName));
     }
 
@@ -81,10 +109,8 @@ class JobServiceTest {
         String jobName = "testJob";
         String groupName = "testGroup";
 
-        // Act
         jobService.deleteJob(jobName, groupName);
 
-        // Assert
         verify(scheduler, times(1)).deleteJob(JobKey.jobKey(jobName, groupName));
     }
 
