@@ -24,27 +24,26 @@ public class JobService {
     private Scheduler scheduler;
 
     // Thêm một job mới
-    public void addNewJob(Class<? extends Job> jobClass, String jobName, String groupName, String triggerName, int intervalInSeconds) throws SchedulerException {
-        logger.info("Adding new job: jobClass={}, jobName={}, groupName={}, triggerName={}, intervalInSeconds={}", jobClass, jobName, groupName, triggerName, intervalInSeconds);
-        final HashMap<String, String> map = new HashMap<>();
-
-        map.put("jobClass", jobClass.getName());
-        map.put("jobName", jobName);
-        map.put("groupName", groupName);
-        map.put("triggerName", triggerName);
-        map.put("intervalInSeconds", String.valueOf(intervalInSeconds));
+    public void addNewJob(AddJobDTO addJobDTO) throws SchedulerException {
+        logger.info("Đang thêm job mới: {}", addJobDTO);
+        
+        Class<? extends Job> jobClass;
+        try {
+            jobClass = (Class<? extends Job>) Class.forName(addJobDTO.getJobClassName());
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Không tìm thấy lớp job", e);
+        }
 
         JobDetail jobDetail = JobBuilder.newJob(jobClass)
-                .withIdentity(jobName, groupName)
-            .withDescription("description")
-            .setJobData(new JobDataMap(map))
+                .withIdentity(addJobDTO.getJobName(), addJobDTO.getGroupName())
+                .withDescription("Mô tả")
                 .build();
 
         Trigger trigger = TriggerBuilder.newTrigger()
-                .withIdentity(triggerName, groupName)
+                .withIdentity(addJobDTO.getTriggerName(), addJobDTO.getGroupName())
                 .startNow()
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        .withIntervalInSeconds(intervalInSeconds)
+                        .withIntervalInSeconds(addJobDTO.getIntervalInSeconds())
                         .repeatForever())
                 .build();
 

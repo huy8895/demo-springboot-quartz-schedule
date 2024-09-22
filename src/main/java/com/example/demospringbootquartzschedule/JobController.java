@@ -25,12 +25,10 @@ public class JobController {
 
     // API để thêm job mới
     @PostMapping("/add")
-    public String addJob(@RequestParam String jobName,
-        @RequestParam String groupName,
-        @RequestParam String triggerName,
-        @RequestParam int intervalInSeconds) throws SchedulerException {
-        jobService.addNewJob(SampleJob.class, jobName, groupName, triggerName, intervalInSeconds);
-        return "Job added successfully!";
+    public String addJob(@RequestBody AddJobDTO addJobDTO) throws SchedulerException {
+        jobService.addNewJob(addJobDTO);
+        log.info("Job added successfully");
+        return "Job đã được thêm thành công!";
     }
 
     @PostMapping("/addOneTimeJob")
