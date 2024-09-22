@@ -55,7 +55,8 @@ public class JobService {
 
     JobDetail jobDetail = JobBuilder.newJob(jobClass)
         .withIdentity(addJobDTO.getJobName(), addJobDTO.getGroupName())
-        .withDescription("Mô tả")
+        .withDescription(addJobDTO.getDescription())
+        .setJobData(addJobDTO.getJobDataMap())
         .build();
 
     Trigger trigger = TriggerBuilder.newTrigger()
