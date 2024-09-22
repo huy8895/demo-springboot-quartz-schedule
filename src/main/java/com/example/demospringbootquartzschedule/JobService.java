@@ -25,6 +25,7 @@ public class JobService {
     private Scheduler scheduler;
 
     // Thêm một job mới
+    @Transactional(rollbackFor = ObjectAlreadyExistsException.class)
     public void addNewJob(AddJobDTO addJobDTO) throws SchedulerException {
         logger.info("Đang thêm job mới: {}", addJobDTO);
         
@@ -51,7 +52,7 @@ public class JobService {
         scheduler.scheduleJob(jobDetail, trigger);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = ObjectAlreadyExistsException.class)
     public void addOneTimeJob(AddOneTimeJobDTO addOneTimeJobDTO) throws SchedulerException {
         logger.info("Đang thêm job một lần: {}", addOneTimeJobDTO);
         
@@ -91,6 +92,7 @@ public class JobService {
     }
 
     // Cập nhật job trigger (thay đổi lịch trình)
+    @Transactional(rollbackFor = ObjectAlreadyExistsException.class)
     public void     updateJob(JobUpdateDTO updateDTO) throws SchedulerException {
         JobKey jobKey = new JobKey(updateDTO.getJobName(), updateDTO.getGroupName());
         JobDetail jobDetail = scheduler.getJobDetail(jobKey);
@@ -147,7 +149,7 @@ public class JobService {
     }
 
     // Xóa job
-    @Transactional
+    @Transactional(rollbackFor =  SchedulerException.class)
     public void deleteJob(String jobName, String groupName) throws SchedulerException {
         logger.info("Deleting job: jobName={}, groupName={}", jobName, groupName);
         scheduler.deleteJob(JobKey.jobKey(jobName, groupName));
