@@ -12,6 +12,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+
 import com.example.demospringbootquartzschedule.dto.AddJobDTO;
 import com.example.demospringbootquartzschedule.dto.AddOneTimeJobDTO;
 import com.example.demospringbootquartzschedule.dto.JobInfoDTO;
@@ -151,16 +154,40 @@ class JobServiceTest {
     newJobData.put("key", "value");
     updateDTO.setNewJobData(newJobData);
 
+    // Tạo các mock objects
     JobDetail mockJobDetail = mock(JobDetail.class);
-    when(scheduler.getJobDetail(any(JobKey.class))).thenReturn(mockJobDetail);
-
+    JobBuilder mockJobBuilder = mock(JobBuilder.class);
     Trigger mockTrigger = mock(Trigger.class);
-    doReturn(Collections.singletonList(mockTrigger))
-        .when(scheduler).getTriggersOfJob(any(JobKey.class));
+    JobDataMap mockJobDataMap = mock(JobDataMap.class);
+    
+    // Thiết lập hành vi cho scheduler mock
+    doReturn(mockJobDetail).when(scheduler).getJobDetail(any(JobKey.class));
+    doReturn(Collections.singletonList(mockTrigger)).when(scheduler).getTriggersOfJob(any(JobKey.class));
+
+    // Thiết lập hành vi cho JobDetail mock
+    doReturn(mockJobBuilder).when(mockJobDetail).getJobBuilder();
+    doReturn(mockJobDataMap).when(mockJobDetail).getJobDataMap();
+
+    // Thiết lập hành vi cho JobBuilder mock
+    doReturn(mockJobBuilder).when(mockJobBuilder).storeDurably();
+    doReturn(mockJobBuilder).when(mockJobBuilder).usingJobData(any(JobDataMap.class));
+    doReturn(mockJobDetail).when(mockJobBuilder).build();
+
+    // Thiết lập hành vi cho Trigger mock
+    doReturn(TriggerKey.triggerKey("oldTrigger", "testGroup")).when(mockTrigger).getKey();
+
+    // Thiết lập hành vi cho JobDataMap mock
+    doReturn(new HashMap<String, Object>()).when(mockJobDataMap).getWrappedMap();
+
+    // Thực hiện phương thức cần test
     jobService.updateJob(updateDTO);
 
+    // Xác minh các tương tác
+    verify(scheduler).getJobDetail(JobKey.jobKey("testJob", "testGroup"));
     verify(scheduler).addJob(any(JobDetail.class), eq(true));
     verify(scheduler).rescheduleJob(any(TriggerKey.class), any(Trigger.class));
+    verify(mockJobDetail).getJobDataMap();
+    verify(mockJobBuilder).usingJobData(any(JobDataMap.class));
   }
 
   @Test
