@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class JobService {
@@ -50,17 +51,27 @@ public class JobService {
         scheduler.scheduleJob(jobDetail, trigger);
     }
 
-    public void addOneTimeJob(Class<? extends Job> jobClass, String jobName, String groupName, String triggerName, int delayInSeconds) throws SchedulerException {
+    @Transactional
+    public void addOneTimeJob(AddOneTimeJobDTO addOneTimeJobDTO) throws SchedulerException {
+        logger.info("Đang thêm job một lần: {}", addOneTimeJobDTO);
+        
+        Class<? extends Job> jobClass;
+        try {
+            jobClass = (Class<? extends Job>) Class.forName(addOneTimeJobDTO.getJobClassName());
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Không tìm thấy lớp job", e);
+        }
+
         // Tạo JobDetail
         JobDetail jobDetail = JobBuilder.newJob(jobClass)
-            .withIdentity(jobName, groupName)
+            .withIdentity(addOneTimeJobDTO.getJobName(), addOneTimeJobDTO.getGroupName())
             .build();
 
         // Tạo trigger sẽ chỉ chạy một lần sau delayInSeconds
         Trigger trigger = TriggerBuilder.newTrigger()
-            .withIdentity(triggerName, groupName)
-            .startAt(DateBuilder.futureDate(delayInSeconds, DateBuilder.IntervalUnit.SECOND))  // Thời gian bắt đầu
-            .withSchedule(SimpleScheduleBuilder.simpleSchedule().withRepeatCount(0))  // Chỉ chạy 1 lần
+            .withIdentity(addOneTimeJobDTO.getTriggerName(), addOneTimeJobDTO.getGroupName())
+            .startAt(DateBuilder.futureDate(addOneTimeJobDTO.getDelayInSeconds(), DateBuilder.IntervalUnit.SECOND))
+            .withSchedule(SimpleScheduleBuilder.simpleSchedule().withRepeatCount(0))
             .build();
 
         // Thêm Job vào scheduler
@@ -136,6 +147,7 @@ public class JobService {
     }
 
     // Xóa job
+    @Transactional
     public void deleteJob(String jobName, String groupName) throws SchedulerException {
         logger.info("Deleting job: jobName={}, groupName={}", jobName, groupName);
         scheduler.deleteJob(JobKey.jobKey(jobName, groupName));

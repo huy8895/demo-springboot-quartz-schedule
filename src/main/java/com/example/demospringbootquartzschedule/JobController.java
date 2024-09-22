@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @Slf4j
 @RestController
 @RequestMapping("/jobs")
@@ -32,14 +31,11 @@ public class JobController {
     }
 
     @PostMapping("/addOneTimeJob")
-    public String addOneTimeJob(@RequestParam String jobName,
-        @RequestParam String groupName,
-        @RequestParam String triggerName,
-        @RequestParam int delayInSeconds) throws SchedulerException {
-        log.info("start addOneTimeJob");
-        jobService.addOneTimeJob(SampleJob.class, jobName, groupName, triggerName, delayInSeconds);
-        log.info("Job added successfully!");
-        return "One-time job added successfully!";
+    public String addOneTimeJob(@RequestBody AddOneTimeJobDTO addOneTimeJobDTO) throws SchedulerException {
+        log.info("Bắt đầu thêm job một lần");
+        jobService.addOneTimeJob(addOneTimeJobDTO);
+        log.info("Job đã được thêm thành công!");
+        return "Job một lần đã được thêm thành công!";
     }
 
     // API để tạm dừng một job
