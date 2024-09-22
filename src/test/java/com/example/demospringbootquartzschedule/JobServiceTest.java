@@ -271,4 +271,41 @@ class JobServiceTest {
     assertEquals(2, result.size());
     verify(scheduler).getJobKeys(GroupMatcher.jobGroupEquals(groupName));
   }
+
+  @Test
+  void testAddNewJob_ClassNotFoundException() {
+    // Thiết lập dữ liệu đầu vào
+    AddJobDTO addJobDTO = new AddJobDTO();
+    addJobDTO.setJobName("testJob");
+    addJobDTO.setGroupName("testGroup");
+    addJobDTO.setTriggerName("testTrigger");
+    addJobDTO.setIntervalInSeconds(10);
+    addJobDTO.setJobClassName("com.example.NonExistentJob"); // Lớp không tồn tại
+
+    // Kiểm tra ngoại lệ IllegalArgumentException
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+      jobService.addNewJob(addJobDTO);
+    });
+
+    // Kiểm tra thông điệp ngoại lệ
+    assertEquals("Không tìm thấy lớp job", exception.getMessage());
+  }
+
+  @Test
+  void testAddOneTimeJob_ClassNotFoundException() {
+    // Thiết lập dữ liệu đầu vào
+    AddOneTimeJobDTO addOneTimeJobDTO = new AddOneTimeJobDTO();
+    addOneTimeJobDTO.setJobName("oneTimeJob");
+    addOneTimeJobDTO.setGroupName("oneTimeGroup");
+    addOneTimeJobDTO.setTriggerName("oneTimeTrigger");
+    addOneTimeJobDTO.setJobClassName("com.example.NonExistentJob"); // Lớp không tồn tại
+
+    // Kiểm tra ngoại lệ IllegalArgumentException
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+      jobService.addOneTimeJob(addOneTimeJobDTO);
+    });
+
+    // Kiểm tra thông điệp ngoại lệ
+    assertEquals("Không tìm thấy lớp job", exception.getMessage());
+  }
 }
