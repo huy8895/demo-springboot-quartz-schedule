@@ -106,7 +106,7 @@ class JobServiceTest {
     // Thiết lập hành vi cho jobService
 //    doNothing().when(jobService).addOneTimeJob(any(AddOneTimeJobDTO.class));
 
-    // Xác minh rằng phương thức addOneTimeJob đã được gọi
+    // Xác minh rng phương thức addOneTimeJob đã được gọi
     verify(scheduler, times(1)).scheduleJob(any(JobDetail.class), any(Trigger.class));
   }
 
@@ -201,6 +201,26 @@ class JobServiceTest {
     verify(scheduler).rescheduleJob(any(TriggerKey.class), any(Trigger.class));
     verify(mockJobDetail).getJobDataMap();
     verify(mockJobBuilder).usingJobData(any(JobDataMap.class));
+  }
+
+  @Test
+  void testUpdateJob_JobNotFound() throws SchedulerException {
+    // Thiết lập dữ liệu đầu vào
+    JobUpdateDTO updateDTO = new JobUpdateDTO();
+    updateDTO.setJobName("nonExistentJob");
+    updateDTO.setGroupName("testGroup");
+
+    // Mô phỏng việc không tìm thấy JobDetail
+    JobKey jobKey = new JobKey(updateDTO.getJobName(), updateDTO.getGroupName());
+    doReturn(null).when(scheduler).getJobDetail(jobKey); // Trả về null khi gọi getJobDetail
+
+    // Kiểm tra ngoại lệ IllegalArgumentException
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        jobService.updateJob(updateDTO);
+    });
+
+    // Kiểm tra thông điệp ngoại lệ
+    assertEquals("Job not found", exception.getMessage());
   }
 
   @Test
