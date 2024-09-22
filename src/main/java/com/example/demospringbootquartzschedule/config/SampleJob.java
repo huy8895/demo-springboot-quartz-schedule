@@ -1,4 +1,4 @@
-package com.example.demospringbootquartzschedule;
+package com.example.demospringbootquartzschedule.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;

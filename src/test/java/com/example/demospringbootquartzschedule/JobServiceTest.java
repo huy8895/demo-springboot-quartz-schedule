@@ -6,6 +6,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.demospringbootquartzschedule.config.SampleJob;
+import com.example.demospringbootquartzschedule.service.JobService;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;

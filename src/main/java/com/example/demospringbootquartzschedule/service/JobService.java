@@ -1,6 +1,10 @@
-package com.example.demospringbootquartzschedule;
+package com.example.demospringbootquartzschedule.service;
 
-import com.example.demospringbootquartzschedule.JobInfo.TriggerInfo;
+import com.example.demospringbootquartzschedule.dto.JobInfoDTO;
+import com.example.demospringbootquartzschedule.dto.JobInfoDTO.TriggerInfo;
+import com.example.demospringbootquartzschedule.dto.AddJobDTO;
+import com.example.demospringbootquartzschedule.dto.AddOneTimeJobDTO;
+import com.example.demospringbootquartzschedule.dto.JobUpdateDTO;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -181,16 +185,16 @@ public class JobService {
   }
 
   // Tìm kiếm job và các trigger liên quan
-  public List<JobInfo> searchJob(String jobName, String groupName) throws SchedulerException {
+  public List<JobInfoDTO> searchJob(String jobName, String groupName) throws SchedulerException {
     logger.info("Tìm kiếm công việc: jobName={}, groupName={}", jobName, groupName);
-    List<JobInfo> jobInfoList = new ArrayList<>();
+    List<JobInfoDTO> jobInfoDTOList = new ArrayList<>();
 
     if (jobName != null && groupName != null) {
       // Tìm kiếm công việc cụ thể
       JobKey jobKey = new JobKey(jobName, groupName);
       JobDetail jobDetail = scheduler.getJobDetail(jobKey);
       if (jobDetail != null) {
-        jobInfoList.add(getJobInfo(jobDetail));
+        jobInfoDTOList.add(getJobInfo(jobDetail));
       }
     } else if (jobName != null) {
       // Tìm tất cả công việc có tên jobName trong tất cả các nhóm
@@ -198,7 +202,7 @@ public class JobService {
         JobKey jobKey = new JobKey(jobName, group);
         JobDetail jobDetail = scheduler.getJobDetail(jobKey);
         if (jobDetail != null) {
-          jobInfoList.add(getJobInfo(jobDetail));
+          jobInfoDTOList.add(getJobInfo(jobDetail));
         }
       }
     } else if (groupName != null) {
@@ -206,7 +210,7 @@ public class JobService {
       Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName));
       for (JobKey jobKey : jobKeys) {
         JobDetail jobDetail = scheduler.getJobDetail(jobKey);
-        jobInfoList.add(getJobInfo(jobDetail));
+        jobInfoDTOList.add(getJobInfo(jobDetail));
       }
     } else {
       // Tìm tất cả công việc
@@ -214,16 +218,16 @@ public class JobService {
         Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(group));
         for (JobKey jobKey : jobKeys) {
           JobDetail jobDetail = scheduler.getJobDetail(jobKey);
-          jobInfoList.add(getJobInfo(jobDetail));
+          jobInfoDTOList.add(getJobInfo(jobDetail));
         }
       }
     }
 
-    logger.info("Tìm thấy {} công việc", jobInfoList.size());
-    return jobInfoList;
+    logger.info("Tìm thấy {} công việc", jobInfoDTOList.size());
+    return jobInfoDTOList;
   }
 
-  private JobInfo getJobInfo(JobDetail jobDetail) throws SchedulerException {
+  private JobInfoDTO getJobInfo(JobDetail jobDetail) throws SchedulerException {
     List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobDetail.getKey());
     List<TriggerInfo> triggerInfoList = triggers.stream()
         .map(trigger -> {
@@ -240,6 +244,6 @@ public class JobService {
         })
         .collect(Collectors.toList());
 
-    return new JobInfo(jobDetail, triggerInfoList);
+    return new JobInfoDTO(jobDetail, triggerInfoList);
   }
 }

@@ -1,4 +1,4 @@
-package com.example.demospringbootquartzschedule;
+package com.example.demospringbootquartzschedule.dto;
 
 import lombok.Data;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.example.demospringbootquartzschedule;
+package com.example.demospringbootquartzschedule.dto;
 
 import java.util.Date;
 import java.util.List;
@@ -14,7 +14,7 @@ import org.quartz.Trigger.TriggerState;
  * Lớp JobInfo đại diện cho thông tin chi tiết của một công việc (job) trong Quartz Scheduler.
  */
 @Data
-public class JobInfo {
+public class JobInfoDTO {
     /**
      * Khóa duy nhất của công việc, bao gồm tên và nhóm.
      */
@@ -59,7 +59,7 @@ public class JobInfo {
      * @param jobDetail JobDetail chứa thông tin chi tiết về công việc
      * @param triggerInfoList Danh sách các TriggerInfo liên kết với công việc
      */
-    public JobInfo(JobDetail jobDetail, List<TriggerInfo> triggerInfoList) {
+    public JobInfoDTO(JobDetail jobDetail, List<TriggerInfo> triggerInfoList) {
         this.jobKey = jobDetail.getKey();
         this.description = jobDetail.getDescription();
         this.jobClass = jobDetail.getJobClass();

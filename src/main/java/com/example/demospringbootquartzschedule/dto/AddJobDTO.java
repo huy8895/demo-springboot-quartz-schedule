@@ -1,12 +1,12 @@
-package com.example.demospringbootquartzschedule;
+package com.example.demospringbootquartzschedule.dto;
 
 import lombok.Data;
 
 @Data
-public class AddOneTimeJobDTO {
+public class AddJobDTO {
     private String jobName;
     private String groupName;
     private String triggerName;
-    private int delayInSeconds;
+    private int intervalInSeconds;
     private String jobClassName;
 }

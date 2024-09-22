@@ -1,5 +1,10 @@
-package com.example.demospringbootquartzschedule;
+package com.example.demospringbootquartzschedule.controller;
 
+import com.example.demospringbootquartzschedule.dto.JobInfoDTO;
+import com.example.demospringbootquartzschedule.service.JobService;
+import com.example.demospringbootquartzschedule.dto.AddJobDTO;
+import com.example.demospringbootquartzschedule.dto.AddOneTimeJobDTO;
+import com.example.demospringbootquartzschedule.dto.JobUpdateDTO;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.SchedulerException;
@@ -78,7 +83,7 @@ public class JobController {
 
     // API để tìm kiếm job và trigger
     @GetMapping("/searchJob")
-    public List<JobInfo> searchJob(@RequestParam(required = false) String jobName,
+    public List<JobInfoDTO> searchJob(@RequestParam(required = false) String jobName,
         @RequestParam(required = false) String groupName) throws SchedulerException {
         // Gọi service để xử lý logic tìm kiếm job và trigger
         log.info("start searchJob with groupName {}", groupName);
