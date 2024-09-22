@@ -85,8 +85,7 @@ public class JobService {
     // Tạo trigger sẽ chỉ chạy một lần sau delayInSeconds
     Trigger trigger = TriggerBuilder.newTrigger()
         .withIdentity(addOneTimeJobDTO.getTriggerName(), addOneTimeJobDTO.getGroupName())
-        .startAt(DateBuilder.futureDate(addOneTimeJobDTO.getDelayInSeconds(),
-            DateBuilder.IntervalUnit.SECOND))
+        .startAt(addOneTimeJobDTO.getStartTime()) // Sử dụng startTime từ DTO
         .withSchedule(SimpleScheduleBuilder.simpleSchedule()
             .withRepeatCount(0))
         .build();

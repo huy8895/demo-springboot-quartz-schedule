@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Date;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 
@@ -39,6 +41,7 @@ import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
+import org.springframework.http.MediaType;
 
 class JobServiceTest {
 
@@ -84,16 +87,26 @@ class JobServiceTest {
   }
 
   @Test
-  void testAddOneTimeJob() throws SchedulerException {
+  void testAddOneTimeJob() throws Exception {
+    // Tạo đối tượng AddOneTimeJobDTO
     AddOneTimeJobDTO addOneTimeJobDTO = new AddOneTimeJobDTO();
-    addOneTimeJobDTO.setJobName("testOneTimeJob");
-    addOneTimeJobDTO.setGroupName("testGroup");
-    addOneTimeJobDTO.setTriggerName("testTrigger");
-    addOneTimeJobDTO.setDelayInSeconds(60);
+    addOneTimeJobDTO.setJobName("oneTimeJob");
+    addOneTimeJobDTO.setGroupName("oneTimeGroup");
+    addOneTimeJobDTO.setTriggerName("oneTimeTrigger");
     addOneTimeJobDTO.setJobClassName("com.example.demospringbootquartzschedule.config.SampleJob");
-
+    addOneTimeJobDTO.setStartTime(new Date());
+    addOneTimeJobDTO.setJobData(new HashMap<>());
     jobService.addOneTimeJob(addOneTimeJobDTO);
+    // Thiết lập thời gian bắt đầu
+    Date startTime = new Date(System.currentTimeMillis() + 10000); // Thời gian bắt đầu 10 giây sau
+    addOneTimeJobDTO.setStartTime(startTime);
+    
+    addOneTimeJobDTO.setJobData(new HashMap<>());
 
+    // Thiết lập hành vi cho jobService
+//    doNothing().when(jobService).addOneTimeJob(any(AddOneTimeJobDTO.class));
+
+    // Xác minh rằng phương thức addOneTimeJob đã được gọi
     verify(scheduler, times(1)).scheduleJob(any(JobDetail.class), any(Trigger.class));
   }
 
