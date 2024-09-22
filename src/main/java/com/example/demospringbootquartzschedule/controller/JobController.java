@@ -40,8 +40,8 @@ public class JobController {
     public String addOneTimeJob(@RequestBody AddOneTimeJobDTO addOneTimeJobDTO) throws SchedulerException {
         log.info("Bắt đầu thêm job một lần");
         jobService.addOneTimeJob(addOneTimeJobDTO);
-        log.info("Job đã được thêm thành công!");
-        return "Job một lần đã được thêm thành công!";
+        log.info("one-time job added successfully");
+        return "one-time job added successfully";
     }
 
     // API để tạm dừng một job

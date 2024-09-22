@@ -5,9 +5,11 @@ import com.example.demospringbootquartzschedule.dto.JobInfoDTO;
 import com.example.demospringbootquartzschedule.dto.JobUpdateDTO;
 import com.example.demospringbootquartzschedule.service.JobService;
 import com.example.demospringbootquartzschedule.dto.AddJobDTO;
+import com.example.demospringbootquartzschedule.dto.AddOneTimeJobDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -170,5 +172,30 @@ class JobControllerTest {
 			.andExpect(content().json(objectMapper.writeValueAsString(jobInfoList)));
 
 		verify(jobService, times(1)).searchJob("testJob", "testGroup");
+	}
+
+	@Test
+	void testAddOneTimeJob() throws Exception {
+		// Tạo đối tượng AddOneTimeJobDTO
+		AddOneTimeJobDTO addOneTimeJobDTO = new AddOneTimeJobDTO();
+		addOneTimeJobDTO.setJobName("oneTimeJob");
+		addOneTimeJobDTO.setGroupName("oneTimeGroup");
+		addOneTimeJobDTO.setTriggerName("oneTimeTrigger");
+		addOneTimeJobDTO.setJobClassName("com.example.OneTimeJob");
+		addOneTimeJobDTO.setStartTime(new Date());
+		addOneTimeJobDTO.setJobData(new HashMap<>());
+
+		// Thiết lập hành vi cho jobService
+		doNothing().when(jobService).addOneTimeJob(any(AddOneTimeJobDTO.class));
+
+		// Thực hiện yêu cầu và kiểm tra phản hồi
+		mockMvc.perform(post("/jobs/addOneTimeJob") // Đảm bảo đường dẫn khớp với mapping
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(addOneTimeJobDTO)))
+			.andExpect(status().isOk())
+			.andExpect(content().string("one-time job added successfully"));
+
+		// Xác minh rằng phương thức addOneTimeJob đã được gọi
+		verify(jobService, times(1)).addOneTimeJob(any(AddOneTimeJobDTO.class));
 	}
 }
