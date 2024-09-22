@@ -3,6 +3,7 @@ package com.example.demospringbootquartzschedule.dto;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
@@ -14,6 +15,7 @@ import org.quartz.Trigger.TriggerState;
  * Lớp JobInfo đại diện cho thông tin chi tiết của một công việc (job) trong Quartz Scheduler.
  */
 @Data
+@NoArgsConstructor
 public class JobInfoDTO {
     /**
      * Khóa duy nhất của công việc, bao gồm tên và nhóm.
