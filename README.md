@@ -1,1 +1,1 @@
-Link doc: [link](https://huytvdev.id.vn/posts/quartz-schedule-with-springboot/)
+Link doc: [link](https://huy8895.github.io/posts/quartz-schedule-with-springboot/)
